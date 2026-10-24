@@ -52,5 +52,22 @@ the originals change.
   (the source is inside `app.json`). Do not put anything private there.
 - The app needs `cache = "session"` in its `bindCache()` calls, because
   shinylive does not set up shiny's default app-level cache.
+- **Safari workaround.** In shinylive, `renderPlot()` fails in Safari ("Maximum
+  call stack size exceeded", posit-dev/r-shinylive issue #204, open when this
+  was written), leaving the plot cards empty. `app-source/app.R` therefore draws
+  each plot to a PNG itself and shows it with `renderImage()`
+  (`render_plot_image()` and `imageOutput()`). This is the one place where
+  `app-source/app.R` differs from the project's own `app.R`, which still uses
+  `renderPlot()`. If shinylive fixes the issue, the workaround can be removed.
+  Whether it works in Safari is recorded below.
 - A shinylive page is served with a service worker (`shinylive-sw.js`). The
   first visit may be slower, or reload once, while it installs.
+
+## Browser test log
+
+| Date | Browser | Result |
+|---|---|---|
+| 2026-10-24 | Chrome (headless), live GitHub Pages page, fresh profile | Works. All four plots appear after 12.4 s on a first visit, no reload, no errors. N = 1000 about 2 s |
+| 2026-10-24 | Chrome and Chrome Incognito (user) | Works; buttons work |
+| 2026-10-24 | Safari, normal and private window (user), `renderPlot()` version | Page frame loads, plot cards stay empty (issue #204) |
+| (pending) | Safari, `renderImage()` workaround version | Not yet tested |

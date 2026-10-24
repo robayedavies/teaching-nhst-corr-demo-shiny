@@ -24,6 +24,25 @@ src("nhst-sampling-variability.R")
 
 random_seed <- function() sample.int(10000, 1)
 
+# Safari workaround. In shinylive (webR), renderPlot() fails in Safari with "RangeError:
+# Maximum call stack size exceeded" and the app stalls (posit-dev/r-shinylive issue #204,
+# open as of 2026-10-24). Drawing the plot to a PNG ourselves and returning it with
+# renderImage() avoids that path and works in every browser tested. It also works in a normal
+# Shiny session. `id` must be the output's id (its size is read from session$clientData).
+render_plot_image <- function(id, session, make_plot) {
+  renderImage({
+    w  <- session$clientData[[paste0("output_", id, "_width")]]
+    h  <- session$clientData[[paste0("output_", id, "_height")]]
+    pr <- session$clientData$pixelratio
+    req(w, h, w > 20, h > 20)
+    if (is.null(pr)) pr <- 1
+    f <- tempfile(fileext = ".png")
+    grDevices::png(f, width = w * pr, height = h * pr, res = 96 * pr)
+    tryCatch(print(make_plot()), finally = grDevices::dev.off())
+    list(src = f, contentType = "image/png", width = w, height = h)
+  }, deleteFile = TRUE)
+}
+
 
 # ---- User interface ------------------------------------------------------------------
 
@@ -66,18 +85,18 @@ ui <- page_fillable(
     col_widths = c(4, 4, 4),
     card(
       card_header(class = "py-1", "1. Our observed dataset"),
-      plotOutput("focal"),
+      imageOutput("focal", fill = TRUE),
       card_footer(class = "small py-1", uiOutput("focal_note"))
     ),
     card(
       card_header(class = "py-1", "2. Six more datasets, same population"),
-      plotOutput("grid"),
+      imageOutput("grid", fill = TRUE),
       card_footer(class = "small py-1", uiOutput("grid_note"))
     ),
     card(
       card_header(class = "py-1", "3. Where does our r fall? 100 studies per world"),
-      plotOutput("pile_h0"),
-      plotOutput("pile_ha"),
+      imageOutput("pile_h0", fill = TRUE),
+      imageOutput("pile_ha", fill = TRUE),
       card_footer(class = "small py-1", uiOutput("pile_note"))
     )
   )
@@ -120,10 +139,10 @@ server <- function(input, output, session) {
             plot.subtitle = element_text(size = 11))
   }
 
-  output$focal <- renderPlot(plot_focal_scatter(fg()), res = 96)
-  output$grid  <- renderPlot(plot_comparison_grid(fg()), res = 96)
-  output$pile_h0 <- renderPlot(pile_for_app("h0"), res = 96)
-  output$pile_ha <- renderPlot(pile_for_app("ha"), res = 96)
+  output$focal   <- render_plot_image("focal", session, function() plot_focal_scatter(fg()))
+  output$grid    <- render_plot_image("grid", session, function() plot_comparison_grid(fg()))
+  output$pile_h0 <- render_plot_image("pile_h0", session, function() pile_for_app("h0"))
+  output$pile_ha <- render_plot_image("pile_ha", session, function() pile_for_app("ha"))
 
   output$focal_note <- renderUI({
     helpText(sprintf(paste("HA world: population r = %.2f (%s), N = %d.",
