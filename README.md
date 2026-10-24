@@ -59,7 +59,8 @@ the originals change.
   (`render_plot_image()` and `imageOutput()`). This is the one place where
   `app-source/app.R` differs from the project's own `app.R`, which still uses
   `renderPlot()`. If shinylive fixes the issue, the workaround can be removed.
-  Whether it works in Safari is recorded below.
+  **It did not fix Safari for this app** (see the test log below), so it may be
+  removed again.
 - A shinylive page is served with a service worker (`shinylive-sw.js`). The
   first visit may be slower, or reload once, while it installs.
 
@@ -70,4 +71,4 @@ the originals change.
 | 2026-10-24 | Chrome (headless), live GitHub Pages page, fresh profile | Works. All four plots appear after 12.4 s on a first visit, no reload, no errors. N = 1000 about 2 s |
 | 2026-10-24 | Chrome and Chrome Incognito (user) | Works; buttons work |
 | 2026-10-24 | Safari, normal and private window (user), `renderPlot()` version | Page frame loads, plot cards stay empty (issue #204) |
-| (pending) | Safari, `renderImage()` workaround version | Not yet tested |
+| 2026-10-24 | Safari (user), `renderImage()` workaround version, confirmed live | **Still fails.** Plot cards stay empty. Web Inspector: `RangeError: Maximum call stack size exceeded` thrown from `runRAsync` in shinylive.js, then an unhandled promise rejection. So the workaround does not help this app |
