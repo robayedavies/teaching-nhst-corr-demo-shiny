@@ -74,3 +74,4 @@ the originals change.
 | 2026-10-24 | Safari, normal and private window (user), `renderPlot()` version | Page frame loads, plot cards stay empty (issue #204) |
 | 2026-10-24 | Safari (user), `renderImage()` workaround version, confirmed live | **Still fails.** Plot cards stay empty. Web Inspector: `RangeError: Maximum call stack size exceeded` thrown from `runRAsync` in shinylive.js, then an unhandled promise rejection. So the workaround does not help this app |
 | 2026-10-24 | (change) | The `renderImage()` workaround was removed again; `app-source/app.R` is identical to the project's `app.R` |
+| 2026-10-26 | Chrome (headless), live page after the revert was pushed | Works. All four plots appear after 20.4 s on a first visit (12.4 s on 2026-10-24: varies with the network), no reload, no output errors. N = 1000 about 2.3 s. Live `app.R` is identical to the project's `app.R` |
